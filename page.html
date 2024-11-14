@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Art Store</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css">
+    <style>
+        .scroll-link { cursor: pointer; }
+        .product-card { perspective: 1000px; } /* 3D effect */
+        .product-card:hover .inner-card { transform: rotateY(10deg) rotateX(10deg); }
+        .inner-card { transition: transform 0.3s; transform-style: preserve-3d; }
+        #lightbox { display: none; }
+        /* Parallax and scroll layers */
+        .parallax-layer { position: absolute; width: 100%; height: 100%; top: 0; left: 0; }
+    </style>
+</head>
+<body class="bg-white text-gray-800 dark:bg-gray-900 dark:text-gray-100 relative">
+    <!-- Sticky Navbar with Smooth Scrolling -->
+    <nav class="fixed top-0 left-0 w-full bg-white dark:bg-gray-800 shadow-md py-4 px-8 z-50">
+        <ul class="flex space-x-8 text-gray-700 dark:text-gray-300">
+            <li><a href="#home" class="scroll-link">Home</a></li>
+            <li><a href="#shop" class="scroll-link">Shop</a></li>
+            <li><a href="#cart" class="scroll-link">Cart</a></li>
+        </ul>
+    </nav>
+
+    <!-- Parallax Layers (For 3D depth on Scroll) -->
+    <div class="parallax-layer bg-cover bg-center" data-speed="0.2" style="background-image: url('background1.jpg');"></div>
+    <div class="parallax-layer bg-cover bg-center" data-speed="0.4" style="background-image: url('background2.jpg');"></div>
+
+    <!-- Hero Section -->
+    <div id="home" class="relative h-screen flex items-center justify-center bg-center text-white">
+        <h1 class="text-5xl font-bold">Discover Original Art</h1>
+    </div>
+
+    <!-- Shop Section with 3D Hover Effect on Product Cards -->
+    <section id="shop" class="container mx-auto px-4 py-12">
+        <h2 class="text-3xl font-bold text-center mb-8">Featured Art Prints</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="product-card group cursor-pointer" onclick="openLightbox('art1.jpg')">
+                <div class="inner-card bg-white rounded-lg shadow-lg p-4">
+                    <img src="art1.jpg" alt="Artwork 1" class="w-full h-64 object-cover rounded-lg">
+                    <h3 class="mt-4 font-semibold">Artwork Title</h3>
+                    <p class="text-gray-500">$50.00</p>
+                </div>
+            </div>
+            <!-- Additional product cards... -->
+        </div>
+    </section>
+
+    <!-- Cart Section with Drag-and-Drop to Remove -->
+    <div id="cart" class="container mx-auto px-4 py-8">
+        <h1 class="text-4xl font-bold text-center mb-6">Your Cart</h1>
+        <div id="cart-items" class="flex flex-col space-y-4 mb-8">
+            <div class="cart-item flex flex-col md:flex-row items-center justify-between bg-white rounded-lg shadow-md p-4" draggable="true" data-id="1">
+                <img src="art-thumbnail.jpg" alt="Art Print" class="w-full md:w-32 h-32 object-cover rounded mb-4 md:mb-0">
+                <div class="md:flex-1 md:pl-4">
+                    <h2 class="text-lg font-semibold">Art Title</h2>
+                    <p class="text-gray-500">$50.00</p>
+                </div>
+                <button class="text-red-500 mt-2 md:mt-0 remove-btn" onclick="removeCartItem(1)">Remove</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lightbox for Fullscreen Viewing -->
+    <div id="lightbox" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center">
+        <img id="lightbox-img" src="" class="max-w-full max-h-full">
+        <button class="absolute top-4 right-4 text-white text-2xl" onclick="closeLightbox()">✕</button>
+    </div>
+
+    <!-- Floating Action Button (FAB) -->
+    <div class="fixed bottom-4 right-4">
+        <button onclick="toggleQuickActions()" class="bg-purple-600 text-white p-4 rounded-full shadow-lg">+</button>
+        <div id="quick-actions" class="hidden bg-white rounded-lg shadow-lg mt-2">
+            <button onclick="viewCart()" class="block px-4 py-2">View Cart</button>
+            <button onclick="viewWishlist()" class="block px-4 py-2">Wishlist</button>
+        </div>
+    </div>
+
+    <!-- AOS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+    <script>
+        AOS.init();
+
+        // Smooth Scroll
+        document.querySelectorAll('.scroll-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelector(link.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+
+        // Parallax Scrolling
+        document.addEventListener('scroll', () => {
+            document.querySelectorAll('.parallax-layer').forEach(layer => {
+                const speed = layer.getAttribute('data-speed');
+                layer.style.transform = `translateY(${window.scrollY * speed}px)`;
+            });
+        });
+
+        // Lightbox Controls
+        function openLightbox(src) {
+            document.getElementById('lightbox').style.display = 'flex';
+            document.getElementById('lightbox-img').src = src;
+        }
+        function closeLightbox() {
+            document.getElementById('lightbox').style.display = 'none';
+        }
+
+        // Floating Action Button Controls
+        function toggleQuickActions() {
+            document.getElementById('quick-actions').classList.toggle('hidden');
+        }
+
+        // Cart Drag-and-Drop to Remove
+        document.querySelectorAll('.cart-item').forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text', item.getAttribute('data-id'));
+            });
+        });
+        document.getElementById('cart-items').addEventListener('dragover', (e) => e.preventDefault());
+        document.getElementById('cart-items').addEventListener('drop', (e) => {
+            e.preventDefault();
+            const id = e.dataTransfer.getData('text');
+            removeCartItem(id);
+        });
+
+        // Remove Cart Item
+        function removeCartItem(id) {
+            const item = document.querySelector(`.cart-item[data-id="${id}"]`);
+            item.remove();
+            // Update cart subtotal or other UI updates
+        }
+    </script>
+</body>
+</html>
